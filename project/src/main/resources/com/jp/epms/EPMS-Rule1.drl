@@ -1,0 +1,30 @@
+package com.jp.epms;
+
+import java.util.List;
+import java.lang.System;
+
+rule "epms-rule-1"
+        ruleflow-group "epms-rule1-ruleflow-group"
+        dialect "java"
+
+when
+    booking:com.jp.epms.Booking()
+    matchingEquipment : com.jp.epms.Booking($matchingEquipment : matchingEquipments)
+    availableEquipments: com.jp.epms.Booking($equipmentList : availableEquipments)
+    $equip : List() from collect (com.jp.epms.Equipment(booking.getEquipmentCategory() == equipmentCategory
+                               && booking.equipmentType == equipmentType
+                               && ((booking.accessoryOwner != null && (booking.accessoryOwner == owner)) || (booking.accessoryOwner == null))
+                               && ( (booking.accessory != null &&  ( (booking.accessory == 'ST_FORK' && (accessory == 'ST_FORK' || accessory == 'EX_FORK')) 
+                               ||  (booking.accessory == 'OTHERS' && accessory == 'ST_FORK' ) 
+                               || booking.accessory == accessory) ) ||  booking.accessory == null  )  && 
+                               ((booking.onBoard != null &&  (booking.onBoard == 'N' && (onBoard == 'N' || onBoard == 'Y' ) || booking.onBoard == onBoard)) 
+                               ||   booking.onBoard == null ) && (booking.ownedEquipment == null || booking.ownedEquipment == 'N' || (booking.ownedEquipment == 'Y' && booking.reqCoCd == owner))
+                               ) from $equipmentList)
+                              
+
+then
+     System.out.println('booking.getEquipmentCategory()' + booking.getEquipmentCategory());
+     System.out.println('availableEquipments  ' + $equipmentList.size());
+     System.out.println('availableEquipments  ' + $equip.size());
+    booking.setMatchingEquipments($equip);
+end
